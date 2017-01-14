@@ -186,3 +186,21 @@ plt.show()
 
 sns.linearmodels.corrplot(closing_dfs.dropna(), annot = True)
 plt.show()
+
+## Quantify Risk
+
+area = np.pi * 20 # so that the points that we draw are visible
+plt.scatter(x = tech_returns.dropna().mean(),
+	   y = tech_returns.dropna().std(),
+	   s = area)
+plt.xlabel('Expected Return')
+plt.ylabel('Risk')
+
+for label, x, y in zip(tech_returns.columns, tech_returns.dropna().mean(),
+		       tech_returns.dropna().std()):
+    plt.annotate(label, xy = (x, y), xytext = (50, 50),
+		textcoords = 'offset points', ha = 'right', va = 'bottom',
+		 arrowprops = {'arrowstyle' : '-', 'connectionstyle' : 'arc3,rad=-0.3'})
+plt.show()
+
+
