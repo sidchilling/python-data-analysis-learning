@@ -166,3 +166,23 @@ plt.show()
 # Show correlation between all the stocks
 sns.pairplot(data = tech_returns.dropna())
 plt.show()
+
+# Show correlation using PairGrid to control the types of graphs
+returns_fig = sns.PairGrid(data = tech_returns.dropna())
+returns_fig.map_upper(plt.scatter, color = 'purple')
+returns_fig.map_lower(sns.kdeplot, cmap = 'cool_d')
+returns_fig.map_diag(plt.hist, bins = 30)
+plt.show()
+
+# Correlation between Closing prices 
+returns_fig = sns.PairGrid(data = closing_dfs.dropna())
+returns_fig.map_upper(plt.scatter, color = 'purple')
+returns_fig.map_lower(sns.kdeplot, cmap = 'cool_d')
+returns_fig.map_diag(plt.hist, bins = 30)
+plt.show()
+
+sns.linearmodels.corrplot(tech_returns.dropna(), annot = True)
+plt.show()
+
+sns.linearmodels.corrplot(closing_dfs.dropna(), annot = True)
+plt.show()
