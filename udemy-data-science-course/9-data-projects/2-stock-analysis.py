@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
 
+import time
+
 # 1. What was the change in price of the stock over time?
 # 2. What was the daily return of the stock on average?
 # 3. What was the moving average of the various stocks?
@@ -203,4 +205,91 @@ for label, x, y in zip(tech_returns.columns, tech_returns.dropna().mean(),
 		 arrowprops = {'arrowstyle' : '-', 'connectionstyle' : 'arc3,rad=-0.3'})
 plt.show()
 
+## Value at Risk
 
+sns.distplot(a = dfs['AAPL']['Daily Return'].dropna(), bins = 100,
+	   hist = True, kde = True, rug = False, color = 'purple')
+plt.show()
+
+## Bootstap Method
+
+# Print the Quantiles
+print tech_returns['AAPL'].dropna().quantile(0.05) # this means that for 95% times, this will be your worst loss
+# Do the above for all the stocks
+for col in tech_returns.columns:
+    stock = '{}'.format(col)
+    print '{}. Risk: {}'.format(stock,
+			       tech_returns[stock].dropna().quantile(0.05))
+
+## Monte-Carlo Method
+
+def stock_monte_carlo(start_price, days, mu, sigma, dt):
+    price = np.zeros(days)
+    price[0] = start_price
+
+    shock = np.zeros(days)
+    drift = np.zeros(days)
+
+    for x in xrange(1, days):
+	shock[x] = np.random.normal(loc = mu * dt, scale = sigma * np.sqrt(dt))
+	drift[x] = mu * dt
+	price[x] = price[x - 1] + (price[x - 1] * (drift[x] + shock[x]))
+
+    return price
+
+# Run the Monte carlo method for Google 100 times starting with the 
+# first opening price
+start_price = dfs['GOOG']['Open'][0]
+days = 365
+dt = 1 / days
+mu = tech_returns['GOOG'].mean()
+sigma = tech_returns['GOOG'].std()
+for run in xrange(100):
+    plt.plot(stock_monte_carlo(start_price = start_price, days = days, 
+			      mu = mu, sigma = sigma, dt = dt))
+
+plt.xlabel('Days')
+plt.ylabel('Price')
+plt.title('Monte Carlo Analysis for Google')
+plt.show()
+
+# Run 10,000 Monte-Carlo Simulations for all stocks
+for stock in dfs.keys():
+    runs = 10000
+    print 'Running {} Monte-Carlo Simulations for {}'.format(runs, stock)
+    simulations = np.zeros(runs)
+    start_price = dfs[stock]['Open'][0]
+    days = 365
+    dt = 1 / days
+    
+    start_time = time.time()
+
+    mu = tech_returns[stock].mean()
+    sigma = tech_returns[stock].std()
+    for run in xrange(runs):
+	simulations[run] = stock_monte_carlo(start_price = start_price,
+				      days = days, mu = mu,
+				      sigma = sigma, dt = dt)[days - 1]
+	# in the previous step we are taking the final day's simulated price
+    q = np.percentile(simulations, 1)
+    plt.hist(simulations, bins = 200)
+    plt.figtext(x = 0.6, y = 0.8, s = 'Start Price: ${}'.format(round(float(start_price), 2)))
+    # Mean ending Price
+    plt.figtext(x = 0.6, y = 0.7,
+		s = 'Mean Final Price: ${}'.format(round(float(simulations.mean()), 2)))
+    # Variance of the price (with 99% confidence interval)
+    plt.figtext(x = 0.6, y = 0.6, 
+		s = 'VaR(0.99): ${}'.format(round(float(start_price - q), 2)))
+    # Disply 1% quantile
+    plt.figtext(x = 0.15, y = 0.6,
+		s = 'q(0.99): {}'.format(round(float(q), 2)))
+    # Plot a line at the 1% quantile
+    plt.axvline(x = q, linewidth = 4, color = 'r')
+    # Title
+    plt.title('Final Price Distribution for {} after {} days'.format(stock, days),
+	     weight = 'bold')
+
+    end_time = time.time()
+    print 'Time taken to run {} simulations for {}: {}'.format(runs, stock, (end_time - start_time))
+
+    plt.show()
