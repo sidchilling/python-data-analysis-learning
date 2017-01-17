@@ -36,3 +36,20 @@ sns.lmplot(x = 'RM', y = 'Price', data = boston_df)
 plt.xlabel('No of Rooms')
 plt.ylabel('Price in $1000s')
 plt.show()
+
+# Least Squares Method for Linear Regression (No. of Rooms to predict Price)
+X = np.vstack(boston_df['RM'])
+print 'Shape of X: {}'.format(X.shape)
+Y = boston_df['Price']
+print 'Shape of Y: {}'.format(Y.shape)
+
+# Transfor X to the form [X 1]
+X = np.array([[value, 1] for value in X])
+
+m, b = np.linalg.lstsq(a = X, b = Y)[0]
+print 'm: {}, b: {}'.format(m, b)
+
+plt.plot(boston_df['RM'], boston_df['Price'], 'o')
+x = boston_df['RM']
+plt.plot(x , (m * x) + b, 'r', label = 'Best Fit Line')
+plt.show()
