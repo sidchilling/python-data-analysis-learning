@@ -40,6 +40,10 @@ def flatten_axes(axes):
     return axes_array
 
 def convert_date(d):
+    # there might be timestamp data if we fetch the data from internet
+    # there will not be timestamp data if we fetch from files
+    if ' ' in d:
+	d = d.split(' ')[0].strip()
     return datetime.strptime(d, '%Y-%m-%d').strftime("%d %b '%y")
 
 tech_list = ['AAPL', 'GOOG', 'MSFT', 'AMZN']
@@ -70,6 +74,7 @@ print dfs[tech_list[0]].describe()
 # Set Date as Index 
 for stock in dfs.keys():
     dfs[stock] = dfs[stock].reset_index()
+    dfs[stock]['Date'] = dfs[stock]['Date'].apply(str)
     dfs[stock]['Date'] = dfs[stock]['Date'].apply(convert_date)
     dfs[stock] = dfs[stock].set_index(keys = ['Date'])
 print_dataframes(dfs)
