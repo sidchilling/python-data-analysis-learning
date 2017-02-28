@@ -51,7 +51,7 @@ for d in deal_data:
     if d > deal_data_mean:
         num_more_than_mean += 1
 proportion = num_more_than_mean / float(len(deal_data))
-print "Proprtion above the mean: {}".format(proportion)
+print "Proortion above the mean: {}".format(proportion)
 
 
 
